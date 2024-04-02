@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>條碼掃描器</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .barcode-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1cm;
+        }
+        .barcode {
+            max-width: 6.2cm; /* 調整條碼最大寬度 */
+            max-height: 1.4cm; /* 調整條碼最大高度 */
+            width: auto;
+            height: auto;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        input[type="text"] {
+            width: 200px;
+            padding: 5px;
+        }
+        #cameraPreview {
+            width: 100%;
+            height: auto;
+            display: none;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h2>條碼掃描器</h2>
+
+    <!-- 相機預覽 -->
+    <video id="cameraPreview" autoplay muted></video>
+
+    <form id="barcodeForm">
+        <label for="firstBarcode">第一段條碼：</label><br>
+        <input type="text" id="firstBarcode" name="firstBarcode" required><br>
+        <label for="secondBarcode">第二段條碼：</label><br>
+        <input type="text" id="secondBarcode" name="secondBarcode" required><br>
+        <!-- 啟動相機掃描條碼按鈕 -->
+        <button type="button" onclick="startBarcodeScanner()">啟動相機掃描</button>
+        <button type="button" onclick="generateBarcode()">產生條碼</button>
+    </form>
+
+    <div class="barcode-container">
+        <svg id="barcode1" class="barcode"></svg>
+        <svg id="barcode2" class="barcode"></svg>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/quagga/dist/quagga.min.js"></script>
+    <script>
+        // 函數: 啟動相機掃描
+        function startBarcodeScanner() {
+            // 顯示相機預覽
+            document.getElementById("cameraPreview").style.display = "block";
+
+            // 啟動相機掃描
+            Quagga.init({
+                inputStream : {
+                    name : "Live",
+                    type : "LiveStream",
+                    target: document.querySelector('#cameraPreview'),
+                    constraints: {
+                        width: 480,
+                        height: 320,
+                        facingMode: "environment" // 使用後置相機
+                    },
+                },
+                decoder : {
+                    readers : ["ean_reader"] // 僅解析 EAN 條碼
+                }
+            }, function(err) {
+                if (err) {
+                    console.error(err);
+                    alert("無法啟動相機。");
+                    return;
+                }
+                Quagga.start();
+            });
+
+            // 設置相機掃描後的處理事件
+            Quagga.onDetected(function(result) {
+                var barcodeValue = result.codeResult.code;
+                // 將掃描到的條碼數值填入第一個輸入框
+                document.getElementById("firstBarcode").value = barcodeValue;
+
+                // 停止相機掃描
+                Quagga.stop();
+
+                // 隱藏相機預覽
+                document.getElementById("cameraPreview").style.display = "none";
+            });
+        }
+
+        // 函數: 產生條碼
+        function generateBarcode() {
+            // 獲取輸入值
+            var firstBarcode = document.getElementById("firstBarcode").value;
+            var secondBarcode = document.getElementById("secondBarcode").value;
+
+            // 顯示條碼
+            drawBarcode("barcode1", firstBarcode);
+            drawBarcode("barcode2", secondBarcode);
+        }
+
+        // 函數: 繪製條碼
+        function drawBarcode(svgId, barcode) {
+            JsBarcode("#" + svgId, barcode, {
+                format: "CODE39"
+            });
+        }
+    </script>
+</body>
+</html>
