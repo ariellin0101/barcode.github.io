@@ -56,6 +56,7 @@ h2 {
         <input type="text" id="paymentAmount" name="paymentAmount" required><br>
         <button type="button" onclick="generateBarcode()">生成條碼</button><br>
         <button type="button" onclick="generateQRCode()">生成QRCode</button><br>
+        <canvas id="qrcodeCanvas"></canvas>
     </form>
 
     <div class="barcode-container">
@@ -159,33 +160,42 @@ h2 {
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script>
     function generateQRCode() {
-    // 取得條碼輸入值
-    var firstBarcode = document.getElementById("firstBarcode").value;
-    var secondBarcode = document.getElementById("secondBarcode").value;
-    var paymentDue = document.getElementById("paymentDue").value;
-    var paymentAmount = document.getElementById("paymentAmount").value;
+        // 取得輸入欄位的值
+        var firstBarcode = document.getElementById("firstBarcode").value;
+        var secondBarcode = document.getElementById("secondBarcode").value;
+        var paymentDue = document.getElementById("paymentDue").value;
+        var paymentAmount = document.getElementById("paymentAmount").value;
 
-    // 轉換第三段條碼（與原本相同邏輯）
-    var convertedFirstBarcode = convertLettersToNumbers(firstBarcode);
-    var convertedSecondBarcode = convertLettersToNumbers(secondBarcode);
-    var oddSum = calculateOddSum(convertedFirstBarcode) + calculateOddSum(convertedSecondBarcode) + calculateOddSum(paymentDue.substring(3) + paymentAmount.padStart(9, '0'));
-    var evenSum = calculateEvenSum(convertedFirstBarcode) + calculateEvenSum(convertedSecondBarcode) + calculateEvenSum(paymentDue.substring(3) + paymentAmount.padStart(9, '0'));
-    var oddChecksum = oddSum % 11 === 0 ? 'A' : oddSum % 11 === 10 ? 'B' : oddSum % 11;
-    var evenChecksum = evenSum % 11 === 0 ? 'X' : evenSum % 11 === 10 ? 'Y' : evenSum % 11;
-    var thirdBarcode = paymentDue.substring(3) + oddChecksum + evenChecksum + paymentAmount.padStart(9, '0');
+        // 處理第三段條碼
+        var thirdBarcode = paymentDue.substring(3);
+        var oddSum = calculateOddSum(convertLettersToNumbers(firstBarcode)) + 
+                     calculateOddSum(convertLettersToNumbers(secondBarcode)) + 
+                     calculateOddSum(thirdBarcode + paymentAmount.padStart(9, '0'));
+        var evenSum = calculateEvenSum(convertLettersToNumbers(firstBarcode)) + 
+                      calculateEvenSum(convertLettersToNumbers(secondBarcode)) + 
+                      calculateEvenSum(thirdBarcode + paymentAmount.padStart(9, '0'));
+        var oddChecksum = oddSum % 11 === 0 ? 'A' : oddSum % 11 === 10 ? 'B' : oddSum % 11;
+        var evenChecksum = evenSum % 11 === 0 ? 'X' : evenSum % 11 === 10 ? 'Y' : evenSum % 11;
+        var bar3 = thirdBarcode + oddChecksum + evenChecksum + paymentAmount.padStart(9, '0');
 
-    // 組成 QRCode 內容
-    var content = `FAMI||{"bar1":"${firstBarcode}","bar2":"${secondBarcode}","bar3":"${thirdBarcode}","ID":"3A01"}`;
+        // 建構 QRCode 字串
+        var qrData = {
+            bar1: firstBarcode,
+            bar2: secondBarcode,
+            bar3: bar3,
+            ID: "3A01"
+        };
+        var qrText = "FAMI||" + JSON.stringify(qrData);
 
-    // 顯示 QRCode
-    var qrcodeContainer = document.getElementById("qrcode");
-    qrcodeContainer.innerHTML = ""; // 清空舊的 QRCode
-    new QRCode(qrcodeContainer, {
-        text: content,
-        width: 256,
-        height: 256
-    });
-}
+        // 產生 QRCode
+        QRCode.toCanvas(document.getElementById('qrcodeCanvas'), qrText, { width: 256 }, function (error) {
+            if (error) console.error(error);
+        });
+    }
+</script>
+
 </body>
 </html>
