@@ -38,25 +38,6 @@
     <a href="條碼產生_YYMM.html" style="font-size: 24px;">條碼產生器(年+月)</a>
     <br>
     <a href="條碼產生_MMDD.html" style="font-size: 24px;">條碼產生器(月+日)</a>
-    <button onclick="generateQRCodePage()">產 QRCode</button>
-
-<script>
-function generateQRCodePage() {
-    const firstBarcode = document.getElementById("firstBarcode").value;
-    const secondBarcode = document.getElementById("secondBarcode").value;
-    const paymentDue = document.getElementById("paymentDue").value;
-    const paymentAmount = document.getElementById("paymentAmount").value;
-
-    const params = new URLSearchParams({
-        firstBarcode,
-        secondBarcode,
-        paymentDue,
-        paymentAmount
-    });
-
-    window.open("qrcode.html?" + params.toString(), "_blank");
-}
-</script>
 
 
 </body>
