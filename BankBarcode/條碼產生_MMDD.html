@@ -55,6 +55,7 @@ h2 {
         <label for="paymentAmount">繳費金額:</label>
         <input type="text" id="paymentAmount" name="paymentAmount" required><br>
         <button type="button" onclick="generateBarcode()">生成條碼</button><br>
+        <button type="button" onclick="generateQRCode()">生成QRCode</button><br>
     </form>
 
     <div class="barcode-container">
@@ -63,6 +64,7 @@ h2 {
         <svg id="barcode3" class="barcode"></svg>
     </div>
 
+    <div id="qrcode" style="margin-top: 20px;"></div>
 
 
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
@@ -155,5 +157,46 @@ h2 {
             });
         }
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+    // 新增生成QRCode函式
+    function generateQRCode() {
+        // 先取得三段條碼內容，格式可以依需求調整
+        var firstBarcode = document.getElementById("firstBarcode").value;
+        var secondBarcode = document.getElementById("secondBarcode").value;
+        var paymentDue = document.getElementById("paymentDue").value;
+        var paymentAmount = document.getElementById("paymentAmount").value;
+
+        // 計算第三條碼：與原本generateBarcode裡相同計算方式
+        var oddSum = calculateOddSum(convertLettersToNumbers(firstBarcode)) +
+                     calculateOddSum(convertLettersToNumbers(secondBarcode)) +
+                     calculateOddSum(paymentDue.substring(3) + paymentAmount.padStart(9, '0'));
+
+        var evenSum = calculateEvenSum(convertLettersToNumbers(firstBarcode)) +
+                      calculateEvenSum(convertLettersToNumbers(secondBarcode)) +
+                      calculateEvenSum(paymentDue.substring(3) + paymentAmount.padStart(9, '0'));
+
+        var oddChecksum = oddSum % 11 === 0 ? 'A' : oddSum % 11 === 10 ? 'B' : oddSum % 11;
+        var evenChecksum = evenSum % 11 === 0 ? 'X' : evenSum % 11 === 10 ? 'Y' : evenSum % 11;
+
+        var thirdBarcode = paymentDue.substring(3) + oddChecksum + evenChecksum + paymentAmount.padStart(9, '0');
+
+        // 三個條碼合併成一串字串，您也可改格式，例如中間用逗號分開
+        var combined = firstBarcode + secondBarcode + thirdBarcode;
+
+        // 清空之前的QRCode內容
+        document.getElementById("qrcode").innerHTML = "";
+
+        // 生成QRCode，大小可調
+        new QRCode(document.getElementById("qrcode"), {
+            text: combined,
+            width: 256,
+            height: 256,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+    }
+</script>
 </body>
 </html>
