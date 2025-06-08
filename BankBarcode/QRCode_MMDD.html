@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>QR Code 頁面</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            margin-top: 40px;
+        }
+        #qrcode {
+            margin-top: 20px;
+        }
+        .text {
+            margin-top: 20px;
+            font-size: 18px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <h2>合併條碼 QR Code</h2>
+    <canvas id="qrcode"></canvas>
+    <div class="text" id="barcodeText"></div>
+
+    <script>
+        function convertLettersToNumbers(text) {
+            let result = "";
+            for (let i = 0; i < text.length; i++) {
+                let char = text.charAt(i);
+                result += (char >= 'A' && char <= 'Z') ? convertLetterToNumber(char) : char;
+            }
+            return result;
+        }
+
+        function convertLetterToNumber(letter) {
+            const mapping = {
+                'A': '1', 'B': '2', 'C': '3', 'D': '4', 'E': '5',
+                'F': '6', 'G': '7', 'H': '8', 'I': '9', 'J': '1',
+                'K': '2', 'L': '3', 'M': '4', 'N': '5', 'O': '6',
+                'P': '7', 'Q': '8', 'R': '9', 'S': '2', 'T': '3',
+                'U': '4', 'V': '5', 'W': '6', 'X': '7', 'Y': '8', 'Z': '9'
+            };
+            return mapping[letter] || letter;
+        }
+
+        function calculateOddSum(barcode) {
+            let sum = 0;
+            for (let i = 0; i < barcode.length; i += 2) {
+                sum += parseInt(barcode.charAt(i));
+            }
+            return sum;
+        }
+
+        function calculateEvenSum(barcode) {
+            let sum = 0;
+            for (let i = 1; i < barcode.length; i += 2) {
+                sum += parseInt(barcode.charAt(i));
+            }
+            return sum;
+        }
+
+        function generateQRCode() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const firstBarcode = urlParams.get("firstBarcode") || "";
+            const secondBarcode = urlParams.get("secondBarcode") || "";
+            const paymentDue = urlParams.get("paymentDue") || "";
+            const paymentAmount = urlParams.get("paymentAmount") || "";
+
+            const conv1 = convertLettersToNumbers(firstBarcode);
+            const conv2 = convertLettersToNumbers(secondBarcode);
+            const amountPadded = paymentAmount.padStart(9, '0');
+            const payDateShort = paymentDue.substring(3);
+
+            const oddSum = calculateOddSum(conv1) + calculateOddSum(conv2) + calculateOddSum(payDateShort + amountPadded);
+            const evenSum = calculateEvenSum(conv1) + calculateEvenSum(conv2) + calculateEvenSum(payDateShort + amountPadded);
+
+            const oddChecksum = oddSum % 11 === 0 ? 'A' : oddSum % 11 === 10 ? 'B' : oddSum % 11;
+            const evenChecksum = evenSum % 11 === 0 ? 'X' : evenSum % 11 === 10 ? 'Y' : evenSum % 11;
+
+            const thirdBarcode = payDateShort + oddChecksum + evenChecksum + amountPadded;
+            const combined = firstBarcode + secondBarcode + thirdBarcode;
+
+            document.getElementById("barcodeText").innerText = combined;
+
+            QRCode.toCanvas(document.getElementById("qrcode"), combined, { width: 256 }, function (err) {
+                if (err) console.error(err);
+            });
+        }
+
+        generateQRCode();
+    </script>
+</body>
+</html>
