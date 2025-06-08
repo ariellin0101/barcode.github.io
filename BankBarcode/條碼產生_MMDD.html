@@ -55,7 +55,7 @@ h2 {
         <label for="paymentAmount">繳費金額:</label>
         <input type="text" id="paymentAmount" name="paymentAmount" required><br>
         <button type="button" onclick="generateBarcode()">生成條碼</button><br>
-        <button type="button" onclick="generateQRCode()">生成QRCode</button><br>
+        <button type="button" onclick="generateQRCode()">生成 QRCode</button><br>
         <canvas id="qrcodeCanvas"></canvas>
     </form>
 
@@ -71,6 +71,7 @@ h2 {
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
     <script>
         function generateBarcode() {
+            console.log("開始產生QRCode");
             // Get input values
             var firstBarcode = document.getElementById("firstBarcode").value;
             var secondBarcode = document.getElementById("secondBarcode").value;
@@ -158,7 +159,6 @@ h2 {
             });
         }
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script>
