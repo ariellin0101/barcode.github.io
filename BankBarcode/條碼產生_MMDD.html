@@ -158,45 +158,34 @@ h2 {
         }
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script>
-    // 新增生成QRCode函式
+
     function generateQRCode() {
-        // 先取得三段條碼內容，格式可以依需求調整
-        var firstBarcode = document.getElementById("firstBarcode").value;
-        var secondBarcode = document.getElementById("secondBarcode").value;
-        var paymentDue = document.getElementById("paymentDue").value;
-        var paymentAmount = document.getElementById("paymentAmount").value;
+    // 取得條碼輸入值
+    var firstBarcode = document.getElementById("firstBarcode").value;
+    var secondBarcode = document.getElementById("secondBarcode").value;
+    var paymentDue = document.getElementById("paymentDue").value;
+    var paymentAmount = document.getElementById("paymentAmount").value;
 
-        // 計算第三條碼：與原本generateBarcode裡相同計算方式
-        var oddSum = calculateOddSum(convertLettersToNumbers(firstBarcode)) +
-                     calculateOddSum(convertLettersToNumbers(secondBarcode)) +
-                     calculateOddSum(paymentDue.substring(3) + paymentAmount.padStart(9, '0'));
+    // 轉換第三段條碼（與原本相同邏輯）
+    var convertedFirstBarcode = convertLettersToNumbers(firstBarcode);
+    var convertedSecondBarcode = convertLettersToNumbers(secondBarcode);
+    var oddSum = calculateOddSum(convertedFirstBarcode) + calculateOddSum(convertedSecondBarcode) + calculateOddSum(paymentDue.substring(3) + paymentAmount.padStart(9, '0'));
+    var evenSum = calculateEvenSum(convertedFirstBarcode) + calculateEvenSum(convertedSecondBarcode) + calculateEvenSum(paymentDue.substring(3) + paymentAmount.padStart(9, '0'));
+    var oddChecksum = oddSum % 11 === 0 ? 'A' : oddSum % 11 === 10 ? 'B' : oddSum % 11;
+    var evenChecksum = evenSum % 11 === 0 ? 'X' : evenSum % 11 === 10 ? 'Y' : evenSum % 11;
+    var thirdBarcode = paymentDue.substring(3) + oddChecksum + evenChecksum + paymentAmount.padStart(9, '0');
 
-        var evenSum = calculateEvenSum(convertLettersToNumbers(firstBarcode)) +
-                      calculateEvenSum(convertLettersToNumbers(secondBarcode)) +
-                      calculateEvenSum(paymentDue.substring(3) + paymentAmount.padStart(9, '0'));
+    // 組成 QRCode 內容
+    var content = `FAMI||{"bar1":"${firstBarcode}","bar2":"${secondBarcode}","bar3":"${thirdBarcode}","ID":"3A01"}`;
 
-        var oddChecksum = oddSum % 11 === 0 ? 'A' : oddSum % 11 === 10 ? 'B' : oddSum % 11;
-        var evenChecksum = evenSum % 11 === 0 ? 'X' : evenSum % 11 === 10 ? 'Y' : evenSum % 11;
-
-        var thirdBarcode = paymentDue.substring(3) + oddChecksum + evenChecksum + paymentAmount.padStart(9, '0');
-
-        // 三個條碼合併成一串字串，您也可改格式，例如中間用逗號分開
-        var combined = firstBarcode + secondBarcode + thirdBarcode;
-
-        // 清空之前的QRCode內容
-        document.getElementById("qrcode").innerHTML = "";
-
-        // 生成QRCode，大小可調
-        new QRCode(document.getElementById("qrcode"), {
-            text: combined,
-            width: 256,
-            height: 256,
-            colorDark : "#000000",
-            colorLight : "#ffffff",
-            correctLevel : QRCode.CorrectLevel.H
-        });
-    }
-</script>
+    // 顯示 QRCode
+    var qrcodeContainer = document.getElementById("qrcode");
+    qrcodeContainer.innerHTML = ""; // 清空舊的 QRCode
+    new QRCode(qrcodeContainer, {
+        text: content,
+        width: 256,
+        height: 256
+    });
+}
 </body>
 </html>
